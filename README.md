@@ -106,7 +106,16 @@ CREATE TABLE return_status
             return_book_isbn VARCHAR(50),
             FOREIGN KEY (return_book_isbn) REFERENCES books(isbn)
 );
-
+   --altering and updating the tables
+            ALTER TABLE return_status
+             ADD COLUMN book_quality VARCHAR(10);
+            
+             UPDATE return_status
+             SET book_quality = 'Good';
+            
+             UPDATE return_status
+             SET book_quality = 'Damaged'
+             WHERE return_id IN ('RS112', 'RS113', 'RS114', 'RS115', 'RS116', 'RS117');
 ```
 
 ### 2. CRUD Operations
