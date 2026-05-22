@@ -137,8 +137,9 @@ SELECT * FROM books;
 
 ```sql
 UPDATE members
-SET member_address = '125 Oak St'
-WHERE member_id = 'C103';
+SET member_address = '224 Main St'
+WHERE member_id = 'C101';
+SELECT * FROM members;
 ```
 
 **Task 3: Delete a Record from the Issued Status Table**
@@ -209,10 +210,10 @@ ON b.isbn = ist.issued_book_isbn
 GROUP BY 1
 ```
 
-9. **List Members Who Registered in the Last 180 Days**:
+9. **List Members Who Registered in the Last 1700 Days**:
 ```sql
 SELECT * FROM members
-WHERE reg_date >= CURRENT_DATE - INTERVAL '180 days';
+WHERE reg_date >= CURRENT_DATE - INTERVAL '1700 days';
 ```
 
 10. **List Employees with Their Branch Manager's Name and their branch details**:
@@ -377,7 +378,7 @@ SELECT * FROM branch_reports;
 ```
 
 **Task 16: CTAS: Create a Table of Active Members**  
-Use the CREATE TABLE AS (CTAS) statement to create a new table active_members containing members who have issued at least one book in the last 2 months.
+Use the CREATE TABLE AS (CTAS) statement to create a new table active_members containing members who have issued at least one book in the last 26 months.
 
 ```sql
 
@@ -388,7 +389,7 @@ WHERE member_id IN (SELECT
                         DISTINCT issued_member_id   
                     FROM issued_status
                     WHERE 
-                        issued_date >= CURRENT_DATE - INTERVAL '2 month'
+                        issued_date >= CURRENT_DATE - INTERVAL '26 months'
                     )
 ;
 
@@ -417,7 +418,22 @@ GROUP BY 1, 2
 
 **Task 18: Identify Members Issuing High-Risk Books**  
 Write a query to identify members who have issued books more than twice with the status "damaged" in the books table. Display the member name, book title, and the number of times they've issued damaged books.    
+```sql
+SELECT 
+            m.member_name,
+            b.book_title,
+            COUNT(*) as total_issued_daamged_books
+FROM issued_status as ist
+JOIN members as m
+ON m.member_id = ist.issued_member_id
+LEFT JOIN books as b
+ON b.isbn = ist.issued_book_isbn
+JOIN return_status as rt
+ON rt.issued_id = ist.issued_id
+WHERE book_quality = 'Damaged'	
+GROUP BY 1;
 
+```
 
 **Task 19: Stored Procedure**
 Objective:
@@ -495,7 +511,28 @@ Description: Write a CTAS query to create a new table that lists each member and
     Member ID
     Number of overdue books
     Total fines
+```sql
+CREATE TABLE overdue_book_fines
+AS
+SELECT 
+	ist.issued_member_id,
+	COUNT(*) as number_of_overdue_books,
+	SUM(CURRENT_DATE - ist.issued_date) as overdue_days,
+	SUM((CURRENT_DATE -ist.issued_date) * 0.50) as total_fines
+FROM issued_status ist
+JOIN members m
+ON m.member_id = ist.issued_member_id
+LEFT JOIN return_status rt
+ON rt.issued_id = ist.issued_id
+WHERE 
+    rt.return_date IS NULL
+    AND
+    (CURRENT_DATE - ist.issued_date) > 30
+GROUP BY 1;
 
+SELECT * FROM overdue_book_fines;
+
+```
 
 
 ## Reports
